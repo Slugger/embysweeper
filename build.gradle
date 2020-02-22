@@ -1,0 +1,29 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
+    id 'groovy'
+    id 'java'
+    id 'application'
+}
+
+group 'com.github.slugger.emby'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+mainClassName = 'com.github.slugger.emby.sweeper.App'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.codehaus.groovy:groovy-all:2.5.9'
+    compile 'org.codehaus.groovy.modules.http-builder:http-builder:0.7'
+    compile 'ch.qos.logback:logback-classic:1.2.3'
+    compile 'org.slf4j:log4j-over-slf4j:1.7.29'
+    compile 'org.slf4j:jcl-over-slf4j:1.7.29'
+    compile 'info.picocli:picocli:4.1.1'
+
+    testCompile 'org.spockframework:spock-core:1.3-groovy-2.5'
+    testRuntime 'cglib:cglib-nodep:3.2.6'
+    testRuntime 'org.objenesis:objenesis:2.6'
+}
