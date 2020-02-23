@@ -2,7 +2,7 @@ name: Docker Build
 on: [push]
 
 jobs:
-  build:
+  build-jar:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,3 +21,12 @@ jobs:
         with:
           name: jar
           path: build/libs
+
+  build-docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/download-artifact@v1
+        with:
+          name: jar
+      - run: ls -l
