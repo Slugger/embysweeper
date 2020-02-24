@@ -1,5 +1,8 @@
-name: Docker Build
-on: [push]
+name: Publish Docker
+on:
+  push:
+    branches:
+      - master
 
 jobs:
   build-dist:
@@ -24,7 +27,6 @@ jobs:
 
   build-docker:
     runs-on: ubuntu-latest
-    if: endsWith(github.ref, '/master')
     needs: build-dist
 
     steps:
