@@ -24,6 +24,7 @@ jobs:
 
   build-docker:
     runs-on: ubuntu-latest
+    if: ${{ github.ref }} == 'master'
     needs: build-dist
 
     steps:
