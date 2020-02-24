@@ -21,6 +21,8 @@ jobs:
         with:
           name: dist
           path: build/install
+      - name: context debug
+        run: 'echo "REF: ${{ github.ref }}"'
 
   build-docker:
     runs-on: ubuntu-latest
