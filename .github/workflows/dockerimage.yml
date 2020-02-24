@@ -32,4 +32,6 @@ jobs:
         with:
           name: dist
           path: docker/root
-      - run: find .
+      - run: docker build . -t test-img
+        working-directory: docker
+      - run: docker images
