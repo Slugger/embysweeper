@@ -21,12 +21,10 @@ jobs:
         with:
           name: dist
           path: build/install
-      - name: context debug
-        run: 'echo "REF: ${{ github.ref }}"'
 
   build-docker:
     runs-on: ubuntu-latest
-    if: github.ref == 'master'
+    if: endsWith(github.ref, '/master')
     needs: build-dist
 
     steps:
