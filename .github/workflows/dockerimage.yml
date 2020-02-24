@@ -34,4 +34,4 @@ jobs:
           path: docker/root
       - run: docker build . -t test-img
         working-directory: docker
-      - run: docker images
+      - run: docker run --rm test-img -h
