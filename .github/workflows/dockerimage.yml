@@ -32,6 +32,9 @@ jobs:
         with:
           name: dist
           path: docker/root
-      - run: docker build . -t test-img
-        working-directory: docker
-      - run: docker run --rm test-img -h
+      - uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: slugger/embysweeper
+          username: ${{secrets.DKHUB_ID}}
+          password: ${{secrets.DKHUB_KEY}}
+          workdir: docker
