@@ -7,7 +7,7 @@ ARG APPROOT=/opt/embysweeper-shadow
 COPY root/ /opt/
 
 RUN addgroup -g $USRGRPID $USRGRP && \
-    adduser -u $USRGRPID -G $USRGRP $USRGRP && \
+    adduser -D -u $USRGRPID -G $USRGRP $USRGRP && \
     chmod 755 $APPROOT/bin/embysweeper
 
 ENTRYPOINT ["$APPROOT/bin/embysweeper"]
