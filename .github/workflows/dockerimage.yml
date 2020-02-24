@@ -2,7 +2,7 @@ name: Docker Build
 on: [push]
 
 jobs:
-  build-jar:
+  build-dist:
     runs-on: ubuntu-latest
 
     steps:
@@ -12,24 +12,24 @@ jobs:
         with:
           java-version: 1.8
       - name: Build with Gradle
-        run: /bin/sh ./gradlew test shadowJar
+        run: /bin/sh ./gradlew test installShadowDist
       - uses: actions/upload-artifact@v1
         with:
           name: test-results
           path: build/reports
       - uses: actions/upload-artifact@v1
         with:
-          name: jar
-          path: build/libs
+          name: dist
+          path: build/install
 
   build-docker:
     runs-on: ubuntu-latest
-    needs: build-jar
+    needs: build-dist
 
     steps:
       - uses: actions/checkout@v2
       - uses: actions/download-artifact@v1
         with:
-          name: jar
+          name: dist
           path: docker/root
       - run: find .
