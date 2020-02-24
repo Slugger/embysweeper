@@ -7,7 +7,8 @@ ENV APPROOTENV=$APPROOT
 
 COPY root/ /opt/
 
-RUN addgroup -g $USRGRPID $USRGRP && \
+RUN apk --no-cache add bash && \
+    addgroup -g $USRGRPID $USRGRP && \
     adduser -D -u $USRGRPID -G $USRGRP $USRGRP && \
     chmod 755 $APPROOT/bin/embysweeper
 
