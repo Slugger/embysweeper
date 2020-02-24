@@ -12,4 +12,5 @@ RUN apk --no-cache add bash && \
     chmod 755 $APPROOT/bin/embysweeper && \
     ln -s $APPROOT/bin/embysweeper /usr/local/bin/embysweeper
 
+USER $USRGRP:$USRGRP
 ENTRYPOINT ["/usr/local/bin/embysweeper"]
