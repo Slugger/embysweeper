@@ -10,10 +10,13 @@ import picocli.CommandLine
 import java.time.ZonedDateTime
 
 @Slf4j
-@CommandLine.Command(name = 'embysweeper')
+@CommandLine.Command(versionProvider = VersionInfo.class, name = 'embysweeper')
 class App implements Runnable {
     static void main(String[] args) {
-        def cmd = new CommandLine(new App(args: args, http: new RESTClient()))
+        def cmd = new CommandLine(new App(
+                args: args,
+                http: new RESTClient(),
+                versionInfo: new VersionInfo()))
         cmd.caseInsensitiveEnumValuesAllowed = true
         cmd.execute(args)
     }
@@ -74,10 +77,14 @@ class App implements Runnable {
     @CommandLine.Option(names = ['--ignore-fav-series'], description = 'always ignore episodes if the series is a favorite', required = true, defaultValue = 'false')
     private boolean ignoreFavSeries
 
+    @CommandLine.Option(names = ['--version'], description = 'print version info and exit', versionHelp = true)
+    private boolean showVersionInfo
+
     private String[] args
     private RESTClient http
     private Map seriesStatus = [:]
     private ZonedDateTime watchedBefore
+    private VersionInfo versionInfo
 
     @Override
     void run() {
@@ -128,7 +135,7 @@ class App implements Runnable {
     private String getApiKey() {
         http.post(path: '/Users/AuthenticateByName',
                 contentType: 'application/json',
-                headers: ['Authorization': "Emby UserId=\"$user\", Client=\"EmbySweeper\", Device=\"EmbySweeper\", DeviceId=\"EmbySweeper\", Version=\"0.1\""],
+                headers: ['Authorization': "Emby UserId=\"$user\", Client=\"EmbySweeper\", Device=\"EmbySweeper\", DeviceId=\"EmbySweeper\", Version=\"$versionInfo.display\""],
                 body: [Username: user, Pw: password]).data.AccessToken
     }
 
