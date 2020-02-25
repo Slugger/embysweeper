@@ -7,20 +7,6 @@ on:
       - 'v[0-9]*'
 
 jobs:
-  create-release:
-    runs-on: ubuntu-latest
-
-    steps:
-      - id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
-          draft: true
-          prerelease: false
-
   create-dist-zip:
     runs-on: ubuntu-latest
 
@@ -41,11 +27,20 @@ jobs:
           name: dist
           path: build/install
 
-  upload-release-zip:
+  create-release:
     runs-on: ubuntu-latest
-    needs: [create-dist-zip, create-release]
+    needs: create-dist-zip
 
     steps:
+      - id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          draft: true
+          prerelease: false
       - uses: actions/download-artifact@v1
         with:
           name: dist
