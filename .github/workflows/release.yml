@@ -1,8 +1,6 @@
 name: Create Release
 on:
   push:
-    branches:
-      - master
     tags:
       - 'v[0-9]*'
 
