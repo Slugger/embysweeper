@@ -3,6 +3,8 @@ on:
   push:
     branches-ignore:
       - master
+    tags-ignore:
+      - '[0-9].*'
 
 jobs:
   build-dist:
@@ -10,7 +12,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - run: git fetch --prune --unshallow
+      - run: |
+          cd ${{ github.workspace }}/..
+          rm -rf ${{ github.workspace }}
+          git clone git@github.com:${{ github.repository }} ${{ github.workspace }}
+          cd ${{ github.workspace }}
+          git checkout ${{ github.ref }}
       - name: Set up JDK 1.8
         uses: actions/setup-java@v1
         with:
