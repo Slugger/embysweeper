@@ -3,15 +3,10 @@ plugins {
     id 'groovy'
     id 'java'
     id 'application'
-    id 'net.nemerosa.versioning' version '2.8.2'
-}
-
-versionFile {
-    file = new File('src/main/resources/version.properties')
 }
 
 group 'com.github.slugger.emby'
-version = versioning.info.display
+version = '#{VERSION}#'
 
 sourceCompatibility = 1.8
 mainClassName = 'com.github.slugger.emby.sweeper.App'
@@ -32,5 +27,3 @@ dependencies {
     testRuntime 'cglib:cglib-nodep:3.2.6'
     testRuntime 'org.objenesis:objenesis:2.6'
 }
-
-compileJava.dependsOn versionFile
