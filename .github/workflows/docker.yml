@@ -49,3 +49,4 @@ jobs:
           username: ${{secrets.DKHUB_ID}}
           password: ${{secrets.DKHUB_KEY}}
           workdir: docker
+          tag_names: true
