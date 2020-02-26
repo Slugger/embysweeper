@@ -13,10 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: |
-          cd ${{ github.workspace }}/..
-          rm -rf ${{ github.workspace }}
-          git clone git@github.com:${{ github.repository }} ${{ github.workspace }}
-          cd ${{ github.workspace }}
+          git fetch --prune --unshallow
           git checkout ${{ github.ref }}
       - name: Set up JDK 1.8
         uses: actions/setup-java@v1
