@@ -19,7 +19,7 @@ class VersionInfo implements CommandLine.IVersionProvider {
     String[] getVersion() throws Exception {
         [
             'EmbySweeper',
-            "Build $properties.VERSION_DISPLAY",
+            "Build $properties.VERSION_DISPLAY (${properties.VERSION_BUILD.substring(0, 8)})",
             'https://github.com/Slugger/embysweeper'
         ] as String[]
     }
