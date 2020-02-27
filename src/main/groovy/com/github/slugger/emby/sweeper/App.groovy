@@ -132,10 +132,15 @@ class App implements Runnable {
         ZonedDateTime.now().minusDays(minAgeDays)
     }
 
+    private def getApiKeyRequestHeaders() {
+        ['Authorization': "Emby UserId=\"$user\", Client=\"EmbySweeper\", Device=\"EmbySweeper\", DeviceId=\"EmbySweeper\", Version=\"$versionInfo.VERSION_DISPLAY\""]
+    }
+
     private String getApiKey() {
+        def headers = getApiKeyRequestHeaders()
         http.post(path: '/Users/AuthenticateByName',
                 contentType: 'application/json',
-                headers: ['Authorization': "Emby UserId=\"$user\", Client=\"EmbySweeper\", Device=\"EmbySweeper\", DeviceId=\"EmbySweeper\", Version=\"$versionInfo.display\""],
+                'headers': headers,
                 body: [Username: user, Pw: password]).data.AccessToken
     }
 

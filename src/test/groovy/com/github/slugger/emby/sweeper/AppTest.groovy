@@ -81,4 +81,13 @@ class AppTest extends Specification {
             3    | []          | [[Name: 'lib2', Id: '20'], [Name: 'lib1', Id: '10']]      | ['20', '10']
             4    | []          | []                                                        | []
     }
+
+    def 'getApiKeyRequestHeaders() includes proper version info'() {
+        given:
+            def verInfo = Stub(VersionInfo) {
+                getProperty('VERSION_DISPLAY') >> '0.0'
+            }
+        expect:
+            new App(versionInfo: verInfo).getApiKeyRequestHeaders()['Authorization'].contains("Version=\"$verInfo.VERSION_DISPLAY\"")
+    }
 }
