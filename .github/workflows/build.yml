@@ -28,7 +28,7 @@ jobs:
         env:
           GIT_SHA: ${{ github.sha }}
           GIT_BRANCH: ${{ github.ref }}
-          APP_VER: ${{ steps.str_replace.outputs.replaced }}
+          APP_VER: ${{ steps.str_replace.outputs.replaced }} (${GITHUB_SHA::8})
       - name: Build with Gradle
         run: /bin/sh ./gradlew test installShadowDist
       - uses: actions/upload-artifact@v1
