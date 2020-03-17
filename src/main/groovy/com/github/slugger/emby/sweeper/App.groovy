@@ -2,6 +2,7 @@ package com.github.slugger.emby.sweeper
 
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
+import com.github.slugger.emby.sweeper.commands.Delete
 import groovy.util.logging.Slf4j
 import groovyx.net.http.RESTClient
 import org.slf4j.LoggerFactory
@@ -10,15 +11,18 @@ import picocli.CommandLine
 import java.time.ZonedDateTime
 
 @Slf4j
-@CommandLine.Command(versionProvider = VersionInfo.class, name = 'embysweeper')
-class App implements Runnable {
+@CommandLine.Command(versionProvider = VersionInfo, name = 'embysweeper', subcommands = [Delete])
+class App implements Runnable, CommandLine.IExecutionStrategy {
     static void main(String[] args) {
-        def cmd = new CommandLine(new App(
+        def app = new App(
                 args: args,
                 http: new RESTClient(),
-                versionInfo: new VersionInfo()))
+                versionInfo: new VersionInfo()
+        )
+        def cmd = new CommandLine(app)
         cmd.caseInsensitiveEnumValuesAllowed = true
-        cmd.execute(args)
+        cmd.executionStrategy = app
+        System.exit(cmd.execute(args))
     }
 
     static private enum LogLevel {
@@ -28,11 +32,6 @@ class App implements Runnable {
         WARN,
         ERROR,
         FATAL
-    }
-
-    static private enum Action {
-        PRINT,
-        DELETE
     }
 
     @CommandLine.Option(names = ['-l', '--log-level'], description = 'log level (${COMPLETION-CANDIDATES}) [${DEFAULT-VALUE}]', required = true, defaultValue = 'info')
@@ -55,9 +54,6 @@ class App implements Runnable {
 
     @CommandLine.Option(names = ['-h', '--help'], usageHelp = true, description = 'display help and exit')
     private boolean usageHelp
-
-    @CommandLine.Option(names = ['-c', '--action'], description = 'action to perform (${COMPLETION-CANDIDATES}) [${DEFAULT-VALUE}]', required = true, defaultValue = 'print')
-    private Action action
 
     @CommandLine.Option(names = ['--https'], description = 'connect to Emby via https', required = true, defaultValue = 'false')
     private boolean useHttps
@@ -82,12 +78,23 @@ class App implements Runnable {
 
     private String[] args
     private RESTClient http
-    private Map seriesStatus = [:]
     private ZonedDateTime watchedBefore
     private VersionInfo versionInfo
 
+    @CommandLine.Spec
+    private CommandLine.Model.CommandSpec spec
+
     @Override
     void run() {
+        throw new CommandLine.ParameterException(spec.commandLine(), 'Missing required subcommand')
+    }
+
+    int execute(CommandLine.ParseResult parseResult) {
+        init()
+        new CommandLine.RunLast().execute(parseResult)
+    }
+
+    private void init() {
         LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME).level = Level.toLevel(libLogLevel.toString())
         log.level = Level.toLevel(logLevel.toString())
         log.debug('Processing command: ' + args.collect { "\"$it\""}.join(' '))
@@ -98,26 +105,9 @@ class App implements Runnable {
         if(itemFilters == null)
             itemFilters = [:]
 
-        try {
-            http.uri = getEmbyUrl()
-            def key = getApiKey()
-            http.defaultRequestHeaders['X-Emby-Token'] = key
-            getUsers().each { user ->
-                getUserItemsForRemoval(user).each {
-                    def logLevel = 'info'
-                    def msg = "$it.Path\n\tLast Watched: $it.UserData.LastPlayedDate\n\tDeleted: "
-                    if(action == Action.DELETE) {
-                        msg += 'YES!'
-                        http.delete(path: "/Items/$it.Id")
-                        logLevel = 'warn'
-                    } else
-                        msg += 'NO'
-                    log."$logLevel"(msg)
-                }
-            }
-        } catch(Exception e) {
-            log.error 'Error', e
-        }
+        http.uri = getEmbyUrl()
+        def key = getApiKey()
+        http.defaultRequestHeaders['X-Emby-Token'] = key
     }
 
     private String getEmbyUrl() {
@@ -142,57 +132,5 @@ class App implements Runnable {
                 contentType: 'application/json',
                 'headers': headers,
                 body: [Username: user, Pw: password]).data.AccessToken
-    }
-
-    private def getFilteredUserViews(def user) {
-        http.get(path: "/Users/$user.Id/Views").data.Items.findAll { !excludedLibraries.contains(it.Name) }.collect { it.Id }
-    }
-
-    private def getUserItemsForRemoval(def user) {
-        def items = []
-        def libs = getFilteredUserViews(user)
-        libs.each {
-            def queryParams = [parentId: it, recursive: true, Fields: 'Path']
-            itemFilters.each { k, v -> queryParams[k] = v }
-            log.debug "Views params: $queryParams"
-            def allItems = http.get(path: "/Users/$user.Id/Items", query: queryParams).data?.Items
-            log.debug "Found ${allItems.size()} total items for $user.Name"
-            log.trace "All items:\n${allItems.collect { it.Path }.join('\n')}"
-            items.addAll(allItems.findAll {
-                (!ignoreFavSeries || !isFavSeries(user, it.SeriesId)) && isItemTooOld(it.UserData.LastPlayedDate)
-            })
-        }
-        log.debug "Found ${items.size()} items for $user.Name"
-        log.trace "Filtered items:\n${items.collect { it.Path }.join('\n')}"
-        items
-    }
-
-    private boolean isItemTooOld(String lastPlayed) {
-        if(!lastPlayed)
-            return true // items that don't have a last played value are always eligible for removal
-        ZonedDateTime.parse(lastPlayed).isBefore(watchedBefore)
-    }
-
-    private boolean isFavSeries(def user, String seriesId) {
-        def status = seriesStatus[seriesId]
-        if(status == null) {
-            log.debug "Checking series fav status for $seriesId"
-            def series = http.get(path: "/Users/$user.Id/Items/", query: [Ids: seriesId]).data.Items[0]
-            status = series.UserData.IsFavorite
-            log.debug "Series fav status for '$series.Name': $status"
-            seriesStatus[seriesId] = status
-        } else
-            log.debug "Series fav status for $seriesId: $status (cached)"
-        status
-    }
-
-    private def getUsers() {
-        def userObjs = http.get(path: '/Users').data.findAll { cleanupUsers.contains(it.Name) }
-        if(log.isDebugEnabled()) {
-            userObjs.each {
-                log.debug("User '$it.Name': $it.Id")
-            }
-        }
-        userObjs
     }
 }
