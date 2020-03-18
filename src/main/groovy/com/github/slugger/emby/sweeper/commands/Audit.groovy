@@ -1,6 +1,7 @@
 package com.github.slugger.emby.sweeper.commands
 
 import com.github.slugger.emby.sweeper.App
+import groovy.json.JsonOutput
 import groovy.util.logging.Slf4j
 import picocli.CommandLine
 
@@ -82,7 +83,7 @@ class Audit implements Runnable {
                 isItemTooOld(app.http.get(path: "/Users/$user.Id/Items", query: [recursive: true, Path: file]).data.Items[0].UserData.LastPlayedDate)
             }
             if(!tooOld)
-                log.error "This file will not be deleted because it was last watched by someone within the last $app.minAgeDays days"
+                log.error "This file will not be deleted because every specified user last watched it within the last $app.minAgeDays days"
             else
                 log.info 'This file should be deleted by the DELETE action!'
         }
@@ -109,7 +110,10 @@ class Audit implements Runnable {
     }
 
     private boolean fileExists(String file) {
-        app.http.get(path: '/Items', query: [recursive: true, Path: files[0]]).data.TotalRecordCount > 0
+        def items = app.http.get(path: '/Items', query: [recursive: true, Path: files[0]]).data
+        if(items.TotalRecordCount > 0)
+            log.info JsonOutput.prettyPrint(JsonOutput.toJson(items.Items[0]))
+        items.TotalRecordCount > 0
     }
 
     private def getUsers() {
