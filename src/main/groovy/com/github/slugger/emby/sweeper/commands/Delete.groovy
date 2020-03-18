@@ -26,7 +26,7 @@ class Delete implements Runnable {
         getUsers().each { user ->
             getUserItemsForRemoval(user).each {
                 def logLevel = 'info'
-                def msg = "$it.Path\n\tLast Watched: $it.UserData.LastPlayedDate\n\tDeleted: "
+                def msg = "${basicItemDetails(it, user)}\n\tDeleted: "
                 if(reallyDelete) {
                     msg += 'YES!'
                     app.http.delete(path: "/Items/$it.Id")
@@ -51,13 +51,13 @@ class Delete implements Runnable {
             log.debug "Views params: $queryParams"
             def allItems = app.http.get(path: "/Users/$user.Id/Items", query: queryParams).data?.Items
             log.debug "Found ${allItems.size()} total items for $user.Name"
-            log.trace "All items:\n${allItems.collect { it.Path }.join('\n')}"
+            log.trace "All items:\n${allItems.collect { basicItemDetails(it, user) }.join('\n')}"
             items.addAll(allItems.findAll {
                 (!app.ignoreFavSeries || !isFavSeries(user, it.SeriesId)) && isItemTooOld(it.UserData.LastPlayedDate)
             })
         }
         log.debug "Found ${items.size()} items for $user.Name"
-        log.trace "Filtered items:\n${items.collect { it.Path }.join('\n')}"
+        log.trace "Filtered items:\n${items.collect { basicItemDetails(it, user) }.join('\n')}"
         items
     }
 
@@ -88,5 +88,11 @@ class Delete implements Runnable {
             }
         }
         userObjs
+    }
+
+    private String basicItemDetails(def item, def user = null) {
+        def tooOld = isItemTooOld(item?.UserData?.LastPlayedDate)
+        def isFavSeries = user ? isFavSeries(user, item.SeriesId) : false
+        "$item.Path\n\tLast Watched: ${item?.UserData?.LastPlayedDate} (${tooOld ? 'O' : 'N'})\n\tIs Fav Series: $isFavSeries"
     }
 }

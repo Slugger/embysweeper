@@ -2,6 +2,7 @@ package com.github.slugger.emby.sweeper
 
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
+import com.github.slugger.emby.sweeper.commands.Audit
 import com.github.slugger.emby.sweeper.commands.Delete
 import groovy.util.logging.Slf4j
 import groovyx.net.http.RESTClient
@@ -11,7 +12,7 @@ import picocli.CommandLine
 import java.time.ZonedDateTime
 
 @Slf4j
-@CommandLine.Command(versionProvider = VersionInfo, name = 'embysweeper', subcommands = [Delete])
+@CommandLine.Command(versionProvider = VersionInfo, name = 'embysweeper', subcommands = [Delete, Audit])
 class App implements Runnable, CommandLine.IExecutionStrategy {
     static void main(String[] args) {
         def app = new App(
@@ -96,7 +97,7 @@ class App implements Runnable, CommandLine.IExecutionStrategy {
 
     private void init() {
         LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME).level = Level.toLevel(libLogLevel.toString())
-        log.level = Level.toLevel(logLevel.toString())
+        LoggerFactory.getLogger('com.github.slugger.emby.sweeper').level = Level.toLevel(logLevel.toString())
         log.debug('Processing command: ' + args.collect { "\"$it\""}.join(' '))
         watchedBefore = getComputedWatchedBefore()
         log.debug "Only items last watched before $watchedBefore will be deleted"
