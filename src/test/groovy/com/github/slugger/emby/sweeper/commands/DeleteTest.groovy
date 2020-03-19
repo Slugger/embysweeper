@@ -7,6 +7,32 @@ import spock.lang.Unroll
 
 class DeleteTest extends Specification {
 
+    @Unroll
+    def 'http delete request is #desc when dry run mode is #dryMode'() {
+        given:
+            def http = Mock(RESTClient) {
+                1 * get(path: '/Users') >> [data: [[Name: 'user1', Id: '1']]]
+                1 * get(path: '/Users/1/Views') >> [data: [Items: [[Name: 'v1', Id: 'v1']]]]
+                2 * get(path: '/Users/1/Items', query: _) >> [data: [Items: [[Id: 'i1']]]]
+                expectedDeleteCalls * delete(*_)
+                0 * _
+            }
+            def app = new App(http: http, cleanupUsers: ['user1'])
+            app.excludedLibraries = []
+        when:
+            new Delete(app: app, reallyDelete: !dryMode).run()
+        then:
+            notThrown(Throwable)
+        where:
+            dryMode | desc          || expectedDeleteCalls
+            true    | 'not sent'    || 0
+            false   | 'sent'        || 1
+    }
+
+    def 'http delete request is sent when not in dry run mode'() {
+
+    }
+
     def 'getUsers() returns the proper subset of specified users'() {
         given:
             def findme = [Name: 'findme', Id: '2']

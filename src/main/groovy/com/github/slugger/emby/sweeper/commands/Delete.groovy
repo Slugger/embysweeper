@@ -53,7 +53,7 @@ class Delete implements Runnable {
             log.debug "Found ${allItems.size()} total items for $user.Name"
             log.trace "All items:\n${allItems.collect { basicItemDetails(it, user) }.join('\n')}"
             items.addAll(allItems.findAll {
-                (!app.ignoreFavSeries || !isFavSeries(user, it.SeriesId)) && isItemTooOld(it.UserData.LastPlayedDate)
+                (!app.ignoreFavSeries || !isFavSeries(user, it.SeriesId)) && isItemTooOld(it?.UserData?.LastPlayedDate)
             })
         }
         log.debug "Found ${items.size()} items for $user.Name"
@@ -71,8 +71,8 @@ class Delete implements Runnable {
         def status = seriesStatus[seriesId]
         if(status == null) {
             log.debug "Checking series fav status for $seriesId"
-            def series = app.http.get(path: "/Users/$user.Id/Items/", query: [Ids: seriesId]).data.Items[0]
-            status = series.UserData.IsFavorite
+            def series = app.http.get(path: "/Users/$user.Id/Items", query: [Ids: seriesId]).data.Items[0]
+            status = series?.UserData?.IsFavorite ?: false
             log.debug "Series fav status for '$series.Name': $status"
             seriesStatus[seriesId] = status
         } else
