@@ -39,18 +39,20 @@ class Delete implements Runnable {
     }
 
     private def getFilteredUserViews(def user) {
-        app.http.get(path: "/Users/$user.Id/Views").data.Items.findAll { !app.excludedLibraries.contains(it.Name) }.collect { it.Id }
+        def filteredLibs = app.http.get(path: "/Users/$user.Id/Views").data.Items.findAll { !app.excludedLibraries.contains(it.Name) }
+        log.debug "Filtered libraries for user '$user.Name': $filteredLibs"
+        filteredLibs
     }
 
     private def getUserItemsForRemoval(def user) {
         def items = []
         def libs = getFilteredUserViews(user)
         libs.each {
-            def queryParams = [parentId: it, recursive: true, Fields: 'Path']
+            def queryParams = [parentId: it.Id, recursive: true, Fields: 'Path']
             app.itemFilters.each { k, v -> queryParams[k] = v }
-            log.debug "Views params: $queryParams"
+            log.debug "View params: $queryParams"
             def allItems = app.http.get(path: "/Users/$user.Id/Items", query: queryParams).data?.Items
-            log.debug "Found ${allItems.size()} total items for $user.Name"
+            log.debug "Found ${allItems.size()} total items for $user.Name in library '$it.Name'"
             log.trace "All items:\n${allItems.collect { basicItemDetails(it, user) }.join('\n')}"
             items.addAll(allItems.findAll {
                 (!app.ignoreFavSeries || !isFavSeries(user, it.SeriesId)) && isItemTooOld(it?.UserData?.LastPlayedDate)
