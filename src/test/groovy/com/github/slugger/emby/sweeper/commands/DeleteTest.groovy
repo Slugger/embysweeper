@@ -69,8 +69,8 @@ class DeleteTest extends Specification {
         where:
             desc | excludes    | views                                                     | result
             1    | ['lib1']    | [[Name: 'lib1', Id: '10']]                                | []
-            2    | ['lib1']    | [[Name: 'lib2', Id: '20'], [Name: 'lib1', Id: '10']]      | ['20']
-            3    | []          | [[Name: 'lib2', Id: '20'], [Name: 'lib1', Id: '10']]      | ['20', '10']
+            2    | ['lib1']    | [[Name: 'lib2', Id: '20'], [Name: 'lib1', Id: '10']]      | [[Name: 'lib2', Id: '20']]
+            3    | []          | [[Name: 'lib2', Id: '20'], [Name: 'lib1', Id: '10']]      | [[Name: 'lib2', Id: '20'], [Name: 'lib1', Id: '10']]
             4    | []          | []                                                        | []
     }
 }
