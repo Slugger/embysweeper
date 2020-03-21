@@ -5,6 +5,7 @@ import ch.qos.logback.classic.Logger
 import com.github.slugger.emby.sweeper.commands.Audit
 import com.github.slugger.emby.sweeper.commands.Delete
 import groovy.util.logging.Slf4j
+import groovyx.net.http.ContentEncoding
 import groovyx.net.http.RESTClient
 import org.slf4j.LoggerFactory
 import picocli.CommandLine
@@ -96,7 +97,8 @@ class App implements Runnable, CommandLine.IExecutionStrategy {
     }
 
     private void init() {
-        LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME).level = Level.toLevel(libLogLevel.toString())
+        def rootLogger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)
+        rootLogger.level = Level.toLevel(libLogLevel.toString())
         LoggerFactory.getLogger('com.github.slugger.emby.sweeper').level = Level.toLevel(logLevel.toString())
         log.debug('Processing command: ' + args.collect { "\"$it\""}.join(' '))
         watchedBefore = getComputedWatchedBefore()
@@ -106,6 +108,10 @@ class App implements Runnable, CommandLine.IExecutionStrategy {
         if(itemFilters == null)
             itemFilters = [:]
 
+        if(rootLogger.debugEnabled) { // if we're logging wire data, disable compression so we can read it
+            http.client.removeRequestInterceptorByClass(ContentEncoding.RequestInterceptor)
+            http.client.removeResponseInterceptorByClass(ContentEncoding.ResponseInterceptor)
+        }
         http.uri = getEmbyUrl()
         def key = getApiKey()
         http.defaultRequestHeaders['X-Emby-Token'] = key

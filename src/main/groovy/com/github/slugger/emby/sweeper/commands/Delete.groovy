@@ -78,7 +78,7 @@ class Delete implements Runnable {
             log.debug "Series fav status for '$series.Name': $status"
             seriesStatus[seriesId] = status
         } else
-            log.debug "Series fav status for $seriesId: $status (cached)"
+            log.trace "Series fav status for $seriesId: $status (cached)"
         status
     }
 
