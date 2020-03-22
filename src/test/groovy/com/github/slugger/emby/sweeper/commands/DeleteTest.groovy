@@ -18,7 +18,7 @@ class DeleteTest extends Specification {
                 0 * _
             }
             def app = new App(http: http, cleanupUsers: ['user1'])
-            app.excludedLibraries = []
+            app.libraries = new App.EmbyLibraries(excludedLibraries: [])
         when:
             new Delete(app: app, reallyDelete: !dryMode).run()
         then:
@@ -63,7 +63,7 @@ class DeleteTest extends Specification {
             def http = Mock(RESTClient) {
                 1 * get(path: "/Users/$user.Id/Views") >> [data: [Items: views]]
             }
-            def app = new App(http: http, excludedLibraries: excludes)
+            def app = new App(http: http, libraries: new App.EmbyLibraries(excludedLibraries: excludes))
         expect:
             new Delete(app: app).getFilteredUserViews(user) == result
         where:
@@ -72,5 +72,23 @@ class DeleteTest extends Specification {
             2    | ['lib1']    | [[Name: 'lib2', Id: '20'], [Name: 'lib1', Id: '10']]      | [[Name: 'lib2', Id: '20']]
             3    | []          | [[Name: 'lib2', Id: '20'], [Name: 'lib1', Id: '10']]      | [[Name: 'lib2', Id: '20'], [Name: 'lib1', Id: '10']]
             4    | []          | []                                                        | []
+    }
+
+    @Unroll
+    def 'a user\'s views are filtered based on included lib options [#desc]'() {
+        given:
+        def user = [Id: '1']
+        def http = Mock(RESTClient) {
+            1 * get(path: "/Users/$user.Id/Views") >> [data: [Items: views]]
+        }
+        def app = new App(http: http, libraries: new App.EmbyLibraries(includedLibraries: includes))
+        expect:
+        new Delete(app: app).getFilteredUserViews(user) == result
+        where:
+        desc | includes | views                                                | result
+        1    | ['lib1'] | [[Name: 'lib1', Id: '10']]                           | [[Name: 'lib1', Id: '10']]
+        2    | ['lib1'] | [[Name: 'lib2', Id: '20'], [Name: 'lib1', Id: '10']] | [[Name: 'lib1', Id: '10']]
+        3    | []       | [[Name: 'lib2', Id: '20'], [Name: 'lib1', Id: '10']] | []
+        4    | []       | []                                                   | []
     }
 }

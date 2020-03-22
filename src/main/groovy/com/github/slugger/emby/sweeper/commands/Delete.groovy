@@ -40,7 +40,7 @@ class Delete implements Runnable {
 
     private def getFilteredUserViews(def user) {
         def views = app.http.get(path: "/Users/$user.Id/Views").data.Items
-        def filteredLibs = app.libraries.excludedLibraries ?
+        def filteredLibs = app.libraries.excludedLibraries != null ?
                 views.findAll { !app.libraries.excludedLibraries.contains(it.Name) } :
                 views.findAll { app.libraries.includedLibraries.contains(it.Name) }
         log.debug "Filtered libraries for user '$user.Name': ${filteredLibs.collect { it.Name }}"
