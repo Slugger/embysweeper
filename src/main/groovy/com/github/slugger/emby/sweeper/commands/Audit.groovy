@@ -40,12 +40,15 @@ class Audit implements Runnable {
                 return
             }
 
-            log.info 'Checking if the file is excluded by excluded libraries...'
+            log.info 'Checking if the file is excluded by library options...'
             def visibleUser = foundInIncludedLibrary(file, visibleBy)
             if(visibleUser)
                 log.info 'The file is still visible by at least one user... onto the next check'
-            else {
-                log.error "This file was not deleted because it only exists in excluded libraries [$app.excludedLibraries]"
+            else if(app.libraries.excludedLibraries) {
+                log.error "This file was not deleted because it only exists in excluded libraries [$app.libraries.excludedLibraries]"
+                return
+            } else {
+                log.error "This file was not deleted because it does not exist in included libraries [$app.libraries.includedLibraries]"
                 return
             }
 
@@ -127,7 +130,10 @@ class Audit implements Runnable {
     }
 
     private def getUserViews(def user) {
-        app.http.get(path: "/Users/$user.Id/Views").data.Items.findAll { !app.excludedLibraries.contains(it.Name) }.collect { it.Id }
+        if(app.libraries.excludedLibraries)
+            app.http.get(path: "/Users/$user.Id/Views").data.Items.findAll { !app.libraries.excludedLibraries.contains(it.Name) }.collect { it.Id }
+        else
+            app.http.get(path: "/Users/$user.Id/Views").data.Items.findAll { app.libraries.includedLibraries.contains(it.Name) }.collect { it.Id }
     }
 
     private boolean isItemTooOld(String lastPlayed) {

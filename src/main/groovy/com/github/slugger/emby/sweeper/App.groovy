@@ -13,7 +13,10 @@ import picocli.CommandLine
 import java.time.ZonedDateTime
 
 @Slf4j
-@CommandLine.Command(versionProvider = VersionInfo, name = 'embysweeper', subcommands = [Delete, Audit])
+@CommandLine.Command(name = 'embysweeper',
+        versionProvider = VersionInfo,
+        subcommands = [Delete, Audit],
+        showAtFileInUsageHelp = true)
 class App implements Runnable, CommandLine.IExecutionStrategy {
     static void main(String[] args) {
         def app = new App(
@@ -35,6 +38,16 @@ class App implements Runnable, CommandLine.IExecutionStrategy {
         ERROR,
         FATAL
     }
+
+    static private class EmbyLibraries {
+        @CommandLine.Option(names = ['-b', '--excluded-library'], description = 'a library not to scan in; multiple allowed')
+        String[] excludedLibraries
+        @CommandLine.Option(names = ['-i', '--included-library'], description = 'a library to scan in; multiple allowed')
+        String[] includedLibraries
+    }
+
+    @CommandLine.ArgGroup(exclusive = true, multiplicity = '1')
+    private EmbyLibraries libraries
 
     @CommandLine.Option(names = ['-l', '--log-level'], description = 'log level (${COMPLETION-CANDIDATES}) [${DEFAULT-VALUE}]', required = true, defaultValue = 'info')
     private LogLevel logLevel
@@ -65,9 +78,6 @@ class App implements Runnable, CommandLine.IExecutionStrategy {
 
     @CommandLine.Option(names = ['-e', '--cleanup-user'], description = 'user name to cleanup; multiple allowed', required = true)
     private String[] cleanupUsers
-
-    @CommandLine.Option(names = ['-b', '--excluded-library'], description = 'library name to never delete from; multiple allowed')
-    private String[] excludedLibraries
 
     @CommandLine.Option(names = ['--filter'], description = 'filter to apply to discovered items; multiple allowed; these are filters to apply to the /User/{id}/Items api call')
     private Map<String, String> itemFilters
@@ -103,8 +113,6 @@ class App implements Runnable, CommandLine.IExecutionStrategy {
         log.debug('Processing command: ' + args.collect { "\"$it\""}.join(' '))
         watchedBefore = getComputedWatchedBefore()
         log.debug "Only items last watched before $watchedBefore will be deleted"
-        if(excludedLibraries == null)
-            excludedLibraries = []
         if(itemFilters == null)
             itemFilters = [:]
 
