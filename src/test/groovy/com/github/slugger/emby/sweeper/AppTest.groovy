@@ -1,5 +1,6 @@
 package com.github.slugger.emby.sweeper
 
+import picocli.CommandLine
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -50,5 +51,18 @@ class AppTest extends Specification {
             }
         expect:
             new App(versionInfo: verInfo).getApiKeyRequestHeaders()['Authorization'].contains("Version=\"$verInfo.VERSION_DISPLAY\"")
+    }
+
+    @Unroll
+    def 'when #opt is set, init() is not executed'() {
+        given:
+            def app = new App(args: [opt])
+            def cmd = new CommandLine(app)
+            cmd.executionStrategy = app
+            cmd.caseInsensitiveEnumValuesAllowed = true
+        expect:
+            cmd.execute([opt, 'delete'] as String[]) == 0
+        where:
+            opt << ['--help', '--version']
     }
 }
