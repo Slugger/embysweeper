@@ -5,6 +5,7 @@ ARG USRGRPID=9797
 
 COPY root/ /opt/
 
+WORKDIR /opt
 RUN apk --no-cache add bash && \
     addgroup -g $USRGRPID $USRGRP && \
     adduser -D -u $USRGRPID -G $USRGRP $USRGRP && \
