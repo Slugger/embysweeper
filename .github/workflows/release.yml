@@ -27,6 +27,11 @@ jobs:
           GIT_SHA: ${{ github.sha }}
           GIT_BRANCH: ${{ github.ref }}
           APP_VER: ${{ steps.str_replace.outputs.replaced }}
+      - uses: cschleiden/replace-tokens@v1
+        with:
+          files: 'build.gradle'
+        env:
+          VERSION: ${{ steps.str_replace.outputs.replaced }}
       - name: Build with Gradle
         run: /bin/sh ./gradlew test shadowDistZip
       - uses: actions/upload-artifact@v2-preview
