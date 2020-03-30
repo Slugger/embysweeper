@@ -1,8 +1,8 @@
 name: Create Release
 on:
   push:
-    tags:
-      - '[0-9].*'
+#    tags:
+#      - '[0-9].*'
 
 jobs:
   create-dist-zip:
@@ -28,15 +28,15 @@ jobs:
           GIT_BRANCH: ${{ github.ref }}
           APP_VER: ${{ steps.str_replace.outputs.replaced }}
       - name: Build with Gradle
-        run: /bin/sh ./gradlew test installShadowDist
-      - uses: actions/upload-artifact@v1
+        run: /bin/sh ./gradlew test shadowDistZip
+      - uses: actions/upload-artifact@v2-preview
         with:
           name: test-results
           path: build/reports
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v2-preview
         with:
           name: dist
-          path: build/install
+          path: build/distributions/*.zip
 
   create-release:
     runs-on: ubuntu-latest
@@ -56,13 +56,19 @@ jobs:
         with:
           name: dist
           path: dist
-      - run: zip -r embysweeper embysweeper-shadow
+      - name: unzip asset
+        run: |
+          mkdir tmp
+          cd tmp
+          unzip ../*.zip
+          echo "##[set-output name=distfile;]$(ls -1 *.zip)"
         working-directory: dist
+        id: dist_file
       - uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dist/embysweeper.zip
-          asset_name: embysweeper.zip
+          asset_path: ./dist/tmp/${{ steps.dist_file.outputs.distfile }}
+          asset_name: ${{ steps.dist_file.outputs.distfile }}
           asset_content_type: application/zip
