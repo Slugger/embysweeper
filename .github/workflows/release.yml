@@ -56,12 +56,8 @@ jobs:
         with:
           name: dist
           path: dist
-      - name: unzip asset
-        run: |
-          mkdir tmp
-          cd tmp
-          unzip ../*.zip
-          echo "##[set-output name=distfile;]$(ls -1 *.zip)"
+      - name: get zip name
+        run: echo "##[set-output name=distfile;]$(ls -1 *.zip)"
         working-directory: dist
         id: dist_file
       - uses: actions/upload-release-asset@v1
