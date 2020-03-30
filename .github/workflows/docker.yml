@@ -30,15 +30,15 @@ jobs:
           GIT_BRANCH: ${{ github.ref }}
           APP_VER: ${{ steps.str_replace.outputs.replaced }}
       - name: Build with Gradle
-        run: /bin/sh ./gradlew test installShadowDist
-      - uses: actions/upload-artifact@v1
+        run: /bin/sh ./gradlew test shadowDistZip
+      - uses: actions/upload-artifact@v2-preview
         with:
           name: test-results
           path: build/reports
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v2-preview
         with:
           name: dist
-          path: build/install
+          path: build/distributions/*.zip
 
   build-docker:
     runs-on: ubuntu-latest
