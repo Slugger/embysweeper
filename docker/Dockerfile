@@ -9,6 +9,7 @@ COPY root/ /opt/
 RUN apk --no-cache add bash && \
     addgroup -g $USRGRPID $USRGRP && \
     adduser -D -u $USRGRPID -G $USRGRP $USRGRP && \
+    find /opt && \
     chmod 755 $APPROOT/bin/embysweeper && \
     ln -s $APPROOT/bin/embysweeper /usr/local/bin/embysweeper
 
