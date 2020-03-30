@@ -50,6 +50,7 @@ jobs:
         with:
           name: dist
           path: docker/root
+      - run: find docker/root
       - uses: elgohr/Publish-Docker-Github-Action@master
         with:
           name: slugger/embysweeper
