@@ -29,6 +29,14 @@ jobs:
           GIT_SHA: ${{ github.sha }}
           GIT_BRANCH: ${{ github.ref }}
           APP_VER: ${{ steps.str_replace.outputs.replaced }}
+      - name: SHA substring
+        run: echo "##[set-output name=minisha;]$(echo ${{ github.sha }}|cut -c1-8)"
+        id: mini_sha
+      - uses: cschleiden/replace-tokens@v1
+        with:
+          files: 'build.gradle'
+        env:
+          VERSION: ${{ steps.mini_sha.outputs.minisha }}
       - name: Build with Gradle
         run: /bin/sh ./gradlew test shadowDistZip
       - uses: actions/upload-artifact@v2-preview
