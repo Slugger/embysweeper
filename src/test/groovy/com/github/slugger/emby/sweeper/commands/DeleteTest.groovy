@@ -13,7 +13,7 @@ class DeleteTest extends Specification {
             def http = Mock(RESTClient) {
                 1 * get(path: '/Users') >> [data: [[Name: 'user1', Id: '1']]]
                 1 * get(path: '/Users/1/Views') >> [data: [Items: [[Name: 'v1', Id: 'v1']]]]
-                2 * get(path: '/Users/1/Items', query: _) >> [data: [Items: [[Id: 'i1']]]]
+                2 * get(path: '/Users/1/Items', query: _) >> [data: [Items: [[Id: 'i1', Path: '/foo/path/file.mkv']]]]
                 expectedDeleteCalls * delete(*_)
                 0 * _
             }
