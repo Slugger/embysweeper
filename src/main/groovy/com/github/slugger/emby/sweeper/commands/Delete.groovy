@@ -27,13 +27,20 @@ class Delete implements Runnable {
             getUserItemsForRemoval(user).each {
                 def logLevel = 'info'
                 def msg = "${basicItemDetails(it, user)}\n\tDeleted: "
+                def ex = null
                 if(reallyDelete) {
-                    msg += 'YES!'
-                    app.http.delete(path: "/Items/$it.Id")
                     logLevel = 'warn'
+                    try {
+                        app.http.delete(path: "/Items/$it.Id")
+                        msg += 'YES!'
+                    } catch(Throwable t) {
+                        logLevel = 'error'
+                        msg += 'NO'
+                        ex = t
+                    }
                 } else
                     msg += 'NO'
-                log."$logLevel"(msg)
+                log."$logLevel"(msg, ex)
             }
         }
     }
@@ -58,7 +65,9 @@ class Delete implements Runnable {
             log.debug "Found ${allItems.size()} total items for $user.Name in library '$it.Name'"
             log.trace "All items:\n${allItems.collect { basicItemDetails(it, user) }.join('\n')}"
             items.addAll(allItems.findAll {
-                (!app.ignoreFavSeries || !isFavSeries(user, it.SeriesId)) && isItemTooOld(it?.UserData?.LastPlayedDate)
+                it.Path \
+                    && (!app.ignoreFavSeries || !isFavSeries(user, it.SeriesId)) \
+                    && isItemTooOld(it?.UserData?.LastPlayedDate)
             })
         }
         log.debug "Found ${items.size()} items for $user.Name"
