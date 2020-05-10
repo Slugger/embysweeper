@@ -37,6 +37,7 @@ class Delete implements Runnable {
                         logLevel = 'error'
                         msg += 'NO'
                         ex = t
+                        log.error "Failed to delete $it.Id\n$it"
                     }
                 } else
                     msg += 'NO'
@@ -65,8 +66,7 @@ class Delete implements Runnable {
             log.debug "Found ${allItems.size()} total items for $user.Name in library '$it.Name'"
             log.trace "All items:\n${allItems.collect { basicItemDetails(it, user) }.join('\n')}"
             items.addAll(allItems.findAll {
-                it.Path \
-                    && (!app.ignoreFavSeries || !isFavSeries(user, it.SeriesId)) \
+                (!app.ignoreFavSeries || !isFavSeries(user, it.SeriesId)) \
                     && isItemTooOld(it?.UserData?.LastPlayedDate)
             })
         }
