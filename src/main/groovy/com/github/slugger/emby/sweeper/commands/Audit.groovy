@@ -83,7 +83,7 @@ class Audit implements Runnable {
             log.info 'Last check... check if the item is not old enough yet...'
             log.info "To be deleted the item must have been watched more than $app.minAgeDays days ago..."
             def tooOld = visibleBy.find { user ->
-                isItemTooOld(app.http.get(path: "/Users/$user.Id/Items", query: [recursive: true, Path: file]).data.Items[0].UserData.LastPlayedDate)
+                isItemTooOld(app.http.get(path: "/Users/$user.Id/Items", query: [recursive: true, Path: file, Fields: 'UserDataLastPlayedDate']).data.Items[0].UserData.LastPlayedDate)
             }
             if(!tooOld)
                 log.error "This file will not be deleted because every specified user last watched it within the last $app.minAgeDays days"
