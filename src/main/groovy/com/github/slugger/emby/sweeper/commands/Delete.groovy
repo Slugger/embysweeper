@@ -59,7 +59,7 @@ class Delete implements Runnable {
         def items = []
         def libs = getFilteredUserViews(user)
         libs.each {
-            def queryParams = [parentId: it.Id, recursive: true, Fields: 'Path']
+            def queryParams = [parentId: it.Id, recursive: true, Fields: 'Path,UserDataLastPlayedDate']
             app.itemFilters.each { k, v -> queryParams[k] = v }
             log.debug "View params: $queryParams"
             def allItems = app.http.get(path: "/Users/$user.Id/Items", query: queryParams).data?.Items
