@@ -4,6 +4,7 @@ import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
 import com.github.slugger.emby.sweeper.commands.Audit
 import com.github.slugger.emby.sweeper.commands.Delete
+import com.github.slugger.emby.sweeper.commands.KeepAtMost
 import groovy.util.logging.Slf4j
 import groovyx.net.http.ContentEncoding
 import groovyx.net.http.RESTClient
@@ -15,7 +16,7 @@ import java.time.ZonedDateTime
 @Slf4j
 @CommandLine.Command(name = 'embysweeper',
         versionProvider = VersionInfo,
-        subcommands = [Delete, Audit],
+        subcommands = [Delete, KeepAtMost, Audit],
         showAtFileInUsageHelp = true)
 class App implements Runnable, CommandLine.IExecutionStrategy {
     static void main(String[] args) {
