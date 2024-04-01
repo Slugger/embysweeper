@@ -11,10 +11,10 @@ import java.time.ZonedDateTime
 class Delete implements Runnable {
 
     @CommandLine.ParentCommand
-    private App app
+    protected App app
 
     @CommandLine.Option(names = ['-d', '--really-delete'], description = 'don\'t just print what would be deleted, actually delete the items that are found', required = true, defaultValue = 'false')
-    private boolean reallyDelete
+    protected boolean reallyDelete
 
     @CommandLine.Option(names = ['-h', '--help'], usageHelp = true, description = 'display help and exit')
     private boolean usageHelp
@@ -22,7 +22,8 @@ class Delete implements Runnable {
     private Map seriesStatus = [:]
 
     @Override
-    void run() {
+    final void run() {
+        def app = this.app
         getUsers().each { user ->
             getUserItemsForRemoval(user).each {
                 def logLevel = 'info'
@@ -46,7 +47,8 @@ class Delete implements Runnable {
         }
     }
 
-    private def getFilteredUserViews(def user) {
+    protected def getFilteredUserViews(def user) {
+        def app = this.app
         def views = app.http.get(path: "/Users/$user.Id/Views").data.Items
         def filteredLibs = app.libraries.excludedLibraries != null ?
                 views.findAll { !app.libraries.excludedLibraries.contains(it.Name) } :
@@ -55,7 +57,7 @@ class Delete implements Runnable {
         filteredLibs
     }
 
-    private def getUserItemsForRemoval(def user) {
+    protected def getUserItemsForRemoval(def user) {
         def items = []
         def libs = getFilteredUserViews(user)
         libs.each {
@@ -75,7 +77,7 @@ class Delete implements Runnable {
         items
     }
 
-    private boolean isItemTooOld(String lastPlayed) {
+    protected boolean isItemTooOld(String lastPlayed) {
         if(!lastPlayed)
             return true // items that don't have a last played value are always eligible for removal
         ZonedDateTime.parse(lastPlayed).isBefore(app.watchedBefore)
@@ -94,7 +96,8 @@ class Delete implements Runnable {
         status
     }
 
-    private def getUsers() {
+    final protected def getUsers() {
+        def app = this.app
         def userObjs = app.http.get(path: '/Users').data.findAll { app.cleanupUsers.contains(it.Name) }
         if(log.isDebugEnabled()) {
             userObjs.each {
@@ -104,7 +107,7 @@ class Delete implements Runnable {
         userObjs
     }
 
-    private String basicItemDetails(def item, def user = null) {
+    protected String basicItemDetails(def item, def user = null) {
         def tooOld = isItemTooOld(item?.UserData?.LastPlayedDate)
         def isFavSeries = user ? isFavSeries(user, item.SeriesId) : false
         "$item.Path\n\tLast Watched: ${item?.UserData?.LastPlayedDate} (${tooOld ? 'O' : 'N'})\n\tIs Fav Series: $isFavSeries"
