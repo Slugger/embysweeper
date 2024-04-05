@@ -20,6 +20,7 @@ class Delete implements Runnable {
     private boolean usageHelp
 
     private Map seriesStatus = [:]
+    private Map tagStatus = [:]
 
     @Override
     final void run() {
@@ -69,6 +70,7 @@ class Delete implements Runnable {
             log.trace "All items:\n${allItems.collect { basicItemDetails(it, user) }.join('\n')}"
             items.addAll(allItems.findAll {
                 (!app.ignoreFavSeries || !isFavSeries(user, it.SeriesId)) \
+                    && (!app.ignoreSeriesTag || !isTaggedSeries(user, it.SeriesId, app.ignoreSeriesTag)) \
                     && isItemTooOld(it?.UserData?.LastPlayedDate)
             })
         }
@@ -81,6 +83,24 @@ class Delete implements Runnable {
         if(!lastPlayed)
             return true // items that don't have a last played value are always eligible for removal
         ZonedDateTime.parse(lastPlayed).isBefore(app.watchedBefore)
+    }
+
+    private boolean isTaggedSeries(def user, String seriesId, String tag) {
+        def status = tagStatus[tag]
+        if(status == null)
+            tagStatus[tag] = [:]
+        else
+            status = tagStatus[tag][seriesId]
+
+        if(status == null) {
+            log.debug "Checking series tag status for $seriesId/$tag"
+            def series = app.http.get(path: "/Users/$user.Id/Items", query: [Ids: seriesId, Tags: tag]).data
+            status = series.Items.size() == 1
+            log.debug "Series tag status for '$series.Name'/$tag: $status"
+            tagStatus[tag][seriesId] = status
+        } else
+            log.trace "Series tag status for $seriesId/$tag: $status (cached)"
+        status
     }
 
     private boolean isFavSeries(def user, String seriesId) {

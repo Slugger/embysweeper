@@ -86,6 +86,9 @@ class App implements Runnable, CommandLine.IExecutionStrategy {
     @CommandLine.Option(names = ['--ignore-fav-series'], description = 'always ignore episodes if the series is a favorite', required = true, defaultValue = 'false')
     private boolean ignoreFavSeries
 
+    @CommandLine.Option(names = ['--ignore-series-tag'], description = 'always ignore episodes if the series is tagged with this tag')
+    private String ignoreSeriesTag
+
     @CommandLine.Option(names = ['--version'], description = 'print version info and exit', versionHelp = true)
     private boolean showVersionInfo
 
