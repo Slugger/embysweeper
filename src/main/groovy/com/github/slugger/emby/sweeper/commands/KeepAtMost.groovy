@@ -6,11 +6,37 @@ import picocli.CommandLine
 import java.time.ZonedDateTime
 
 @Slf4j
-@CommandLine.Command(name = 'keep', description = 'keep a certain number of items, deleting the oldest ones')
-class KeepAtMost extends Delete {
+@CommandLine.Command(name = 'series-keep', description = 'keep a certain number of items, deleting the oldest ones')
+class KeepAtMost implements Runnable {
 
-    @CommandLine.Option(names = ['-k', '--keep'], description = 'number of items to keep, older ones are deleted first', required = true)
+    @CommandLine.Option(names = ['-c', '--count'], description = 'number of items to keep, older ones are deleted first', required = true)
     private int keepCount
+
+    @Override
+    final void run() {
+        def app = this.app
+        getUsers().each { user ->
+            getUserItemsForRemoval(user).each {
+                def logLevel = 'info'
+                def msg = "${basicItemDetails(it, user)}\n\tDeleted: "
+                def ex = null
+                if(reallyDelete) {
+                    logLevel = 'warn'
+                    try {
+                        app.http.delete(path: "/Items/$it.Id")
+                        msg += 'YES!'
+                    } catch(Throwable t) {
+                        logLevel = 'error'
+                        msg += 'NO'
+                        ex = t
+                        log.error "Failed to delete $it.Id\n$it"
+                    }
+                } else
+                    msg += 'NO'
+                log."$logLevel"(msg, ex)
+            }
+        }
+    }
 
     protected def getUserItemsForRemoval(def user) {
         def items = []
